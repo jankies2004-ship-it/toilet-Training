@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>トイトレ★ぺかぺかアプリ</title>
+<link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #e0f7fa;
+    --pond: #4dd0e1;
+    --leaf: #66bb6a;
+    --leaf-dark: #388e3c;
+    --sun: #ffee58;
+    --sun-dark: #f9a825;
+    --pee: #fff176;
+    --pee-dark: #f9a825;
+    --poo: #a1887f;
+    --poo-dark: #6d4c41;
+    --ticket: #ff8a65;
+    --ticket-dark: #e64a19;
+    --white: #ffffff;
+    --text: #3e2723;
+    --radius: 24px;
+    --shadow: 0 6px 24px rgba(0,0,0,0.13);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Kosugi Maru', sans-serif;
+    background: linear-gradient(180deg, #b2ebf2 0%, #e0f7fa 60%, #c8e6c9 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 8px 40px;
+    color: var(--text);
+  }
+
+  h1 {
+    font-family: 'Nunito', sans-serif;
+    font-size: 2rem;
+    color: var(--leaf-dark);
+    text-shadow: 0 2px 0 #fff, 0 4px 0 rgba(0,0,0,0.08);
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+    text-align: center;
+  }
+  .subtitle { font-size: 0.9rem; color: #00796b; margin-bottom: 18px; }
+
+  /* キャラクターカード */
+  .char-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 360px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .char-name { font-size: 1rem; color: #555; margin-bottom: 6px; }
+  .char-emoji { font-size: 5rem; line-height: 1; margin: 4px 0 10px; transition: transform 0.5s cubic-bezier(.34,1.56,.64,1); }
+  .char-emoji.pop { transform: scale(1.35) rotate(-8deg); }
+  .char-label {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: var(--leaf-dark);
+    letter-spacing: 1px;
+  }
+  .level-badge {
+    position: absolute;
+    top: 16px; right: 16px;
+    background: var(--sun);
+    color: var(--sun-dark);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 0.85rem;
+    border-radius: 999px;
+    padding: 2px 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+
+  /* 進化ゲージ */
+  .evo-section { width: 100%; max-width: 360px; margin-bottom: 14px; }
+  .evo-row { display: flex; gap: 8px; margin-bottom: 6px; }
+  .evo-block {
+    flex: 1;
+    background: var(--white);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 10px 8px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .evo-block .label { font-size: 0.75rem; color: #777; }
+  .bar-wrap {
+    width: 100%;
+    height: 14px;
+    background: #e0e0e0;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.5s ease;
+  }
+  .bar-pee .bar-fill { background: linear-gradient(90deg, var(--pee), var(--pee-dark)); }
+  .bar-poo .bar-fill { background: linear-gradient(90deg, var(--poo), var(--poo-dark)); }
+  .bar-count { font-size: 0.75rem; color: #555; }
+
+  /* ポイント表示 */
+  .point-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 14px 24px;
+    width: 100%;
+    max-width: 360px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .point-label { font-size: 1rem; color: #555; }
+  .point-stars { display: flex; gap: 6px; }
+  .star {
+    font-size: 2rem;
+    transition: transform 0.3s cubic-bezier(.34,1.56,.64,1), filter 0.3s;
+    filter: grayscale(1) opacity(0.3);
+  }
+  .star.lit { filter: none; }
+  .star.pop { transform: scale(1.5); }
+
+  /* ボタン */
+  .btn-row {
+    display: flex;
+    gap: 14px;
+    width: 100%;
+    max-width: 360px;
+    margin-bottom: 14px;
+  }
+  .big-btn {
+    flex: 1;
+    border: none;
+    border-radius: 22px;
+    padding: 22px 10px 18px;
+    font-family: 'Kosugi Maru', sans-serif;
+    font-size: 1.05rem;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.12s, box-shadow 0.12s;
+    active: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .big-btn:active { transform: scale(0.93); box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+  .big-btn .btn-icon { font-size: 2.6rem; line-height: 1; }
+  .btn-pee { background: linear-gradient(135deg, #fff9c4, #fff176); color: var(--pee-dark); }
+  .btn-poo { background: linear-gradient(135deg, #d7ccc8, #bcaaa4); color: var(--poo-dark); }
+
+  /* ごほうびチケット */
+  .ticket-wrap {
+    width: 100%;
+    max-width: 360px;
+    margin-bottom: 14px;
+  }
+  .ticket-btn {
+    width: 100%;
+    border: none;
+    border-radius: 22px;
+    background: linear-gradient(135deg, #ffcc80, #ff8a65);
+    color: white;
+    font-family: 'Kosugi Maru', sans-serif;
+    font-size: 1.2rem;
+    padding: 20px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(255,138,101,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    animation: bounce 0.8s infinite alternate;
+    -webkit-tap-highlight-color: transparent;
+  }
+  @keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-6px); }
+  }
+  .ticket-hidden { display: none; }
+
+  /* モーダル */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 28px;
+    padding: 32px 24px;
+    max-width: 340px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: popIn 0.35s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .modal-icon { font-size: 4rem; margin-bottom: 12px; }
+  .modal-title { font-family: 'Nunito', sans-serif; font-size: 1.5rem; font-weight: 900; color: var(--leaf-dark); margin-bottom: 8px; }
+  .modal-msg { font-size: 0.95rem; color: #555; margin-bottom: 20px; line-height: 1.6; }
+  .modal-close {
+    border: none;
+    border-radius: 999px;
+    background: var(--leaf);
+    color: white;
+    font-family: 'Kosugi Maru', sans-serif;
+    font-size: 1rem;
+    padding: 12px 36px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(102,187,106,0.4);
+    transition: transform 0.1s;
+  }
+  .modal-close:active { transform: scale(0.95); }
+
+  /* 履歴 */
+  .history-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 14px 20px;
+    width: 100%;
+    max-width: 360px;
+    margin-bottom: 8px;
+  }
+  .history-card h3 { font-size: 0.95rem; color: #777; margin-bottom: 8px; }
+  .history-list { list-style: none; max-height: 120px; overflow-y: auto; }
+  .history-list li { font-size: 0.85rem; color: #555; padding: 3px 0; border-bottom: 1px dashed #eee; }
+  .history-list li:last-child { border-bottom: none; }
+
+  /* リセットボタン */
+  .reset-btn {
+    border: 2px solid #ccc;
+    border-radius: 999px;
+    background: transparent;
+    color: #aaa;
+    font-family: 'Kosugi Maru', sans-serif;
+    font-size: 0.8rem;
+    padding: 6px 20px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .reset-btn:hover { color: #e57373; border-color: #e57373; }
+
+  /* 名前入力モーダル */
+  .name-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 300;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .name-overlay.show { display: flex; }
+  .name-modal {
+    background: white;
+    border-radius: 28px;
+    padding: 36px 28px;
+    max-width: 340px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    animation: popIn 0.4s cubic-bezier(.34,1.56,.64,1);
+  }
+  .name-modal .modal-icon { font-size: 4rem; margin-bottom: 10px; }
+  .name-modal h2 {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: var(--leaf-dark);
+    margin-bottom: 6px;
+  }
+  .name-modal p { font-size: 0.9rem; color: #777; margin-bottom: 18px; }
+  .name-input {
+    width: 100%;
+    border: 3px solid #a5d6a7;
+    border-radius: 16px;
+    padding: 14px 16px;
+    font-family: 'Kosugi Maru', sans-serif;
+    font-size: 1.2rem;
+    text-align: center;
+    outline: none;
+    color: var(--text);
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .name-input:focus { border-color: var(--leaf); }
+  .name-submit {
+    width: 100%;
+    border: none;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--leaf), var(--leaf-dark));
+    color: white;
+    font-family: 'Kosugi Maru', sans-serif;
+    font-size: 1.1rem;
+    padding: 14px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(102,187,106,0.45);
+    transition: transform 0.1s;
+  }
+  .name-submit:active { transform: scale(0.96); }
+
+  /* 名前編集ボタン */
+  .edit-name-btn {
+    position: absolute;
+    top: 16px; left: 16px;
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    padding: 2px;
+  }
+  .edit-name-btn:hover { opacity: 1; }
+
+  /* キラキラエフェクト */
+  .sparkle-container {
+    position: fixed; inset: 0; pointer-events: none; z-index: 200;
+    overflow: hidden;
+  }
+  .sparkle {
+    position: absolute;
+    font-size: 1.8rem;
+    animation: fly 1s ease-out forwards;
+  }
+  @keyframes fly {
+    0%   { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-120px) scale(0.3); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<h1>🚽 トイトレ★アプリ</h1>
+<p class="subtitle" id="subtitleName">がんばるきみを、おうえんするよ！</p>
+
+<!-- キャラクターカード -->
+<div class="char-card">
+  <button class="edit-name-btn" onclick="openNameModal(true)" title="なまえをかえる">✏️</button>
+  <div class="level-badge" id="levelBadge">Lv.1</div>
+  <div class="char-name">いまのすがた</div>
+  <div class="char-emoji" id="charEmoji">🥚</div>
+  <div class="char-label" id="charLabel">たまご</div>
+</div>
+
+<!-- 進化ゲージ -->
+<div class="evo-section">
+  <div class="evo-row">
+    <div class="evo-block bar-pee">
+      <div class="label">💛 おしっこ</div>
+      <div class="bar-wrap"><div class="bar-fill" id="peeBar" style="width:0%"></div></div>
+      <div class="bar-count" id="peeCount">0 / 10</div>
+    </div>
+    <div class="evo-block bar-poo">
+      <div class="label">🤎 うんち</div>
+      <div class="bar-wrap"><div class="bar-fill" id="pooBar" style="width:0%"></div></div>
+      <div class="bar-count" id="pooCount">0 / 5</div>
+    </div>
+  </div>
+</div>
+
+<!-- ポイント -->
+<div class="point-card">
+  <div class="point-label">⭐ ごほうびポイント</div>
+  <div class="point-stars">
+    <div class="star" id="star1">⭐</div>
+    <div class="star" id="star2">⭐</div>
+    <div class="star" id="star3">⭐</div>
+  </div>
+</div>
+
+<!-- ボタン -->
+<div class="btn-row">
+  <button class="big-btn btn-pee" onclick="record('pee')">
+    <span class="btn-icon">💛</span>
+    おしっこ<br>できた！
+  </button>
+  <button class="big-btn btn-poo" onclick="record('poo')">
+    <span class="btn-icon">🤎</span>
+    うんち<br>できた！
+  </button>
+</div>
+
+<!-- ごほうびチケット -->
+<div class="ticket-wrap">
+  <button class="ticket-btn ticket-hidden" id="ticketBtn" onclick="useTicket()">
+    🎟️ ごほうびチケットが でたよ！
+  </button>
+</div>
+
+<!-- 履歴 -->
+<div class="history-card">
+  <h3>📝 きろく</h3>
+  <ul class="history-list" id="historyList"></ul>
+</div>
+
+<button class="reset-btn" onclick="resetConfirm()">🔄 リセット</button>
+
+<!-- モーダル -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-icon" id="modalIcon">🎉</div>
+    <div class="modal-title" id="modalTitle">やったね！</div>
+    <div class="modal-msg" id="modalMsg">すごい！</div>
+    <button class="modal-close" id="modalClose" onclick="closeModal()">とじる</button>
+  </div>
+</div>
+
+<!-- 名前入力モーダル -->
+<div class="name-overlay" id="nameModal">
+  <div class="name-modal">
+    <div class="modal-icon">👶</div>
+    <h2>なまえをおしえてね！</h2>
+    <p>あなたのなまえをいれてね</p>
+    <input class="name-input" id="nameInput" type="text" placeholder="れい：はるか" maxlength="10" />
+    <button class="name-submit" onclick="saveName()">はじめる！🐸</button>
+  </div>
+</div>
+
+<!-- スパークル -->
+<div class="sparkle-container" id="sparkles"></div>
+
+<script>
+// --- キャラクター定義 ---
+const CHARS = [
+  { emoji: '🥚', label: 'たまご' },
+  { emoji: '🐛', label: 'オタマジャクシ' },
+  { emoji: '🐸', label: 'かえる' },
+];
+
+const PEE_MAX = 10;
+const POO_MAX = 5;
+const POINT_MAX = 3;
+const LEVEL_MAX = 3;
+
+// --- 名前 ---
+function getName() {
+  return localStorage.getItem('toitore_name') || '';
+}
+function openNameModal(isEdit) {
+  document.getElementById('nameInput').value = isEdit ? getName() : '';
+  document.getElementById('nameModal').classList.add('show');
+  setTimeout(() => document.getElementById('nameInput').focus(), 100);
+}
+function saveName() {
+  const val = document.getElementById('nameInput').value.trim();
+  if (!val) {
+    document.getElementById('nameInput').style.borderColor = '#ef9a9a';
+    setTimeout(() => document.getElementById('nameInput').style.borderColor = '', 800);
+    return;
+  }
+  localStorage.setItem('toitore_name', val);
+  document.getElementById('nameModal').classList.remove('show');
+  updateSubtitle();
+}
+function updateSubtitle() {
+  const name = getName();
+  const el = document.getElementById('subtitleName');
+  el.textContent = name ? `${name}ちゃんの　トイトレ！` : 'がんばるきみを、おうえんするよ！';
+}
+// Enterキーで送信
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('nameInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') saveName();
+  });
+  // 初回起動チェック
+  if (!getName()) {
+    openNameModal(false);
+  }
+  updateSubtitle();
+  render();
+});
+
+// --- データ読み込み ---
+function load() {
+  return JSON.parse(localStorage.getItem('toitore') || 'null') || {
+    points: 0,
+    peeTotal: 0,
+    pooTotal: 0,
+    peeProgress: 0,
+    pooProgress: 0,
+    level: 1,
+    charIdx: 0,
+    ticket: false,
+    history: [],
+  };
+}
+function save(d) {
+  localStorage.setItem('toitore', JSON.stringify(d));
+}
+
+// --- UI更新 ---
+function render() {
+  const d = load();
+
+  // キャラ
+  const c = CHARS[d.charIdx];
+  document.getElementById('charEmoji').textContent = c.emoji;
+  document.getElementById('charLabel').textContent = c.label;
+  document.getElementById('levelBadge').textContent = `Lv.${d.level}`;
+
+  // ゲージ
+  document.getElementById('peeBar').style.width = (d.peeProgress / PEE_MAX * 100) + '%';
+  document.getElementById('pooBar').style.width = (d.pooProgress / POO_MAX * 100) + '%';
+  document.getElementById('peeCount').textContent = `${d.peeProgress} / ${PEE_MAX}`;
+  document.getElementById('pooCount').textContent = `${d.pooProgress} / ${POO_MAX}`;
+
+  // ポイントスター
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById(`star${i}`);
+    el.classList.toggle('lit', i <= d.points);
+  }
+
+  // チケット
+  const tb = document.getElementById('ticketBtn');
+  tb.classList.toggle('ticket-hidden', !d.ticket);
+
+  // 履歴
+  const ul = document.getElementById('historyList');
+  ul.innerHTML = '';
+  [...d.history].reverse().slice(0, 20).forEach(h => {
+    const li = document.createElement('li');
+    li.textContent = h;
+    ul.appendChild(li);
+  });
+}
+
+// --- 記録 ---
+function record(type) {
+  const d = load();
+  const now = new Date();
+  const timeStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+  if (type === 'pee') {
+    d.peeProgress++;
+    d.peeTotal++;
+    d.history.push(`${timeStr} 💛 おしっこ`);
+  } else {
+    d.pooProgress++;
+    d.pooTotal++;
+    d.history.push(`${timeStr} 🤎 うんち`);
+  }
+  d.points++;
+
+  // ポイント満杯 → チケット
+  let showTicket = false;
+  if (d.points >= POINT_MAX) {
+    d.points = 0;
+    d.ticket = true;
+    showTicket = true;
+  }
+
+  // 進化チェック
+  let evolved = false;
+  let levelUp = false;
+  const peeFull = d.peeProgress >= PEE_MAX;
+  const pooFull = d.pooProgress >= POO_MAX;
+  if (peeFull && pooFull) {
+    d.peeProgress = 0;
+    d.pooProgress = 0;
+    d.level = d.level < LEVEL_MAX ? d.level + 1 : 1;
+    d.charIdx = d.level - 1;
+    evolved = true;
+    levelUp = true;
+  } else if (peeFull) {
+    d.peeProgress = 0;
+  } else if (pooFull) {
+    d.pooProgress = 0;
+  }
+
+  save(d);
+  render();
+  sparkle(type === 'pee' ? '💛' : '🤎');
+
+  if (evolved) {
+    setTimeout(() => {
+      document.getElementById('charEmoji').classList.add('pop');
+      setTimeout(() => document.getElementById('charEmoji').classList.remove('pop'), 600);
+      showModal(
+        CHARS[d.charIdx].emoji,
+        'しんか！！',
+        `やったね！${CHARS[d.charIdx].label}になったよ！\nすごいすごい！🎉`
+      );
+    }, 400);
+  } else if (showTicket) {
+    setTimeout(() => {
+      showModal('🎟️', 'ごほうびチケット！', 'ポイントが３こたまったよ！\nパパ・ママにチケットをみせよう！');
+    }, 300);
+  } else {
+    // 軽いフィードバック
+    const msgs = ['えらい！', 'すごいね！', 'がんばってるね！', 'さいこう！'];
+    // just sparkle, no modal for normal records
+  }
+}
+
+// --- チケット使用 ---
+function useTicket() {
+  const d = load();
+  d.ticket = false;
+  save(d);
+  render();
+  showModal('🎁', 'ごほうびもらえるよ！', 'パパ・ママにみせて、\nごほうびをもらおう！🎉');
+}
+
+// --- モーダル ---
+function showModal(icon, title, msg) {
+  document.getElementById('modalIcon').textContent = icon;
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalMsg').textContent = msg;
+  document.getElementById('modal').classList.add('show');
+  sparkle('🌟');
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+}
+
+// --- スパークル ---
+function sparkle(emoji) {
+  const container = document.getElementById('sparkles');
+  for (let i = 0; i < 6; i++) {
+    const el = document.createElement('div');
+    el.className = 'sparkle';
+    el.textContent = emoji;
+    el.style.left = (20 + Math.random() * 60) + 'vw';
+    el.style.top = (40 + Math.random() * 30) + 'vh';
+    el.style.animationDelay = (Math.random() * 0.3) + 's';
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 1200);
+  }
+}
+
+// --- リセット ---
+function resetConfirm() {
+  if (confirm('きろくを全部けしますか？\n(もとにはもどせないよ)')) {
+    localStorage.removeItem('toitore');
+    render();
+  }
+}
+
+// 初期表示はDOMContentLoaded内で実行
+</script>
+</body>
+</html>
